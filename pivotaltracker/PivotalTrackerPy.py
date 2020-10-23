@@ -48,6 +48,14 @@ class Endpoints():
         return "https://www.pivotaltracker.com/services/v5/projects/%s/stories/%s"%(pid,sid)
 
     @staticmethod
+    def STORY_TASKS(pid, sid):
+        return "https://www.pivotaltracker.com/services/v5/projects/%s/stories/%s/tasks"%(pid,sid)
+
+    @staticmethod
+    def STORY_BLOCKERS(pid, sid):
+        return "https://www.pivotaltracker.com/services/v5/projects/%s/stories/%s/blockers"%(pid,sid)
+
+    @staticmethod
     def COMMENTS(pid, sid):
         return "https://www.pivotaltracker.com/services/v5/projects/%s/stories/%s/comments"%(pid,sid)
 
@@ -100,8 +108,12 @@ class PivotalTracker:
     def getProject(self, pid):
         return self.request(Endpoints.PROJECT(pid))
 
-    def getProjectIterations(self,pid):
-        return self.request(Endpoints.PROJECT_ITERATIONS(pid))
+    def getProjectIterations(self,pid,page=0):
+        
+        if page > 0:
+            return self.request(Endpoints.PROJECT_ITERATIONS(pid), parameters={'limit': 50, 'offset': 50*int(page),'envelope': 'true'})
+        else:
+            return self.request(Endpoints.PROJECT_ITERATIONS(pid), parameters={'limit': 50, 'envelope': 'true'})
     
     def getProjectMemberships(self,pid):
         return self.request(Endpoints.PROJECT_MEMBERSHIPS(pid))
@@ -120,12 +132,18 @@ class PivotalTracker:
 
     def getStories(self, pid, page = 0):
         if page > 0:
-            return self.request(Endpoints.STORIES(pid), parameters={'fields': ':default,estimate', 'limit': 500, 'offset': 500*int(page),'envelope': 'true'})
+            return self.request(Endpoints.STORIES(pid), parameters={'fields': ':default,estimate,blocked_story_ids', 'limit': 500, 'offset': 500*int(page),'envelope': 'true'})
         else:
-            return self.request(Endpoints.STORIES(pid), parameters={'fields': ':default,estimate', 'limit': 500, 'envelope': 'true'})
+            return self.request(Endpoints.STORIES(pid), parameters={'fields': ':default,estimate,blocked_story_ids', 'limit': 500, 'envelope': 'true'})
 
     def getStory(self, pid, sid):
         return self.request(Endpoints.STORY(pid, sid))
+
+    def getStoryTasks(self, pid, sid):
+        return self.request(Endpoints.STORY_TASKS(pid, sid))
+
+    def getStoryBlockers(self, pid, sid):
+        return self.request(Endpoints.STORY_BLOCKERS(pid, sid))
 
     def getComments(self, pid, sid):
         return self.request(Endpoints.COMMENTS(pid,sid), parameters={'fields': ':default,file_attachment_ids'})
